@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RentEase - Admin Control Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 py-12 text-gray-100">
+
+    <!-- Top Navigation Links -->
+    <div class="max-w-6xl mx-auto mb-6 flex justify-between px-4">
+        <div class="space-x-4">
+            <a href="index.html" class="text-gray-400 hover:text-blue-400">← Home</a>
+            <a href="dashboard.html" class="text-gray-400 hover:text-blue-400">My Rentals Dashboard</a>
+        </div>
+        <span class="font-bold text-emerald-400">System Admin Control</span>
+    </div>
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
+        
+        <!-- Left Side: Add Product Form (1 Column) -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 text-gray-800 h-fit">
+            <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-4">Add New Item</h2>
+            <form id="productForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Product Name</label>
+                    <input type="text" id="pName" required class="w-full mt-1 p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Category</label>
+                    <select id="pCategory" class="w-full mt-1 p-2 border rounded-lg">
+                        <option value="Furniture">Furniture</option>
+                        <option value="Appliances">Appliances</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Monthly Rent (₹)</label>
+                        <input type="number" id="pRent" required class="w-full mt-1 p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Deposit (₹)</label>
+                        <input type="number" id="pDeposit" required class="w-full mt-1 p-2 border rounded-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Image URL</label>
+                    <input type="url" id="pImg" placeholder="https://..." required class="w-full mt-1 p-2 border rounded-lg">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white py-2.0 rounded-lg font-bold hover:bg-emerald-700 transition">
+                    Publish Product
+                </button>
+            </form>
+        </div>
+
+        <!-- Right Side: Analytics & Orders Monitoring (2 Columns) -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Section 1: Active Rental Orders Track -->
+            <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700">
+                <h2 class="text-xl font-bold text-blue-400 border-b border-slate-700 pb-3 mb-4">🛡️ Live Order Tracking</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="text-xs uppercase bg-slate-700 text-gray-400">
+                            <tr>
+                                <th class="p-3">Product</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Tenure Selected</th>
+                                <th class="p-3">Rent Rate</th>
+                                <th class="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrdersTable">
+                            <!-- JS will load active bookings here -->
+                            <tr>
+                                <td colspan="5" class="p-4 text-center text-gray-500">No active bookings received yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section 2: Clear Storage Button for testing -->
+            <div class="bg-slate-800 rounded-2xl p-4 flex justify-between items-center border border-slate-700">
+                <div>
+                    <h3 class="font-semibold text-amber-400">Developer Testing Tools</h3>
+                    <p class="text-xs text-gray-400">Reset your project data anytime to start fresh.</p>
+                </div>
+                <button onclick="clearProjectData()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg font-bold transition">
+                    Clear All Data
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. PRODUCT ADD LOGIC ---
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('pName').value;
+            const category = document.getElementById('pCategory').value;
+            const rent = document.getElementById('pRent').value;
+            const deposit = document.getElementById('pDeposit').value;
+            const img = document.getElementById('pImg').value;
+            const id = Date.now().toString();
+
+            const newProduct = { id, name, category, rent, deposit, img };
+            let products = JSON.parse(localStorage.getItem('rentEaseProducts')) || [];
+            products.push(newProduct);
+            localStorage.setItem('rentEaseProducts', JSON.stringify(products));
+
+            alert('Product Successfully Added!');
+            document.getElementById('productForm').reset();
+            window.location.reload(); // Table update karne ke liye refresh
+        });
+
+        // --- 2. ORDERS MONITORING LOGIC ---
+        const bookings = JSON.parse(localStorage.getItem('rentEaseBookings')) || [];
+        const tableBody = document.getElementById('adminOrdersTable');
+
+        if(bookings.length > 0) {
+            tableBody.innerHTML = ''; // Default row hatane ke liye
+            bookings.forEach(order => {
+                tableBody.innerHTML += `
+                    <tr class="border-b border-slate-700 hover:bg-slate-700/50">
+                        <td class="p-3 font-semibold text-white">${order.name}</td>
+                        <td class="p-3">${order.category}</td>
+                        <td class="p-3 text-amber-400">${order.tenure}</td>
+                        <td class="p-3 text-emerald-400">₹${order.rent}/mo</td>
+                        <td class="p-3"><span class="bg-blue-900/80 text-blue-300 text-xs px-2 py-1 rounded font-medium border border-blue-700">Processing Delivery</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- 3. RESET DATA TOOL ---
+        function clearProjectData() {
+    if(confirm("Are you sure you want to delete all data and reset?")) {
+        localStorage.clear();
+        alert("All data has been cleared successfully!");
+        window.location.href = 'index.html';
+    }
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentEase - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+
+    <!-- 1. LOGIN MODAL / SCREEN (Yeh pehle dikhega agar login nahi hai) -->
+    <div id="loginOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Welcome to RentEase</h2>
+            <p class="text-gray-500 text-sm text-center mb-6">Please log in to explore and rent items.</p>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Your Name</label>
+                    <input type="text" id="uName" required class="w-full mt-1 p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400 text-gray-800">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Email Address</label>
+                    <input type="email" id="uEmail" required class="w-full mt-1 p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400 text-gray-800">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-md">
+                    Login & Explore
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN WEBSITE CONTENT -->
+    <div id="mainContent">
+        <!-- Navbar -->
+        <nav class="bg-gray-900 p-4 text-white">
+            <div class="container mx-auto flex justify-between items-center">
+                <a href="index.html" class="text-2xl font-bold tracking-wider text-blue-400">RentEase</a>
+                <div class="flex items-center space-x-6">
+                    <span id="userGreeting" class="text-emerald-400 font-medium hidden"></span>
+                    <a href="index.html" class="text-blue-400">Home</a>
+                    <a href="dashboard.html" class="hover:text-blue-400">My Rentals</a>
+                    <a href="admin.html" class="hover:text-blue-400">Admin Panel</a>
+                    <button onclick="logout()" id="logoutBtn" class="text-red-400 hover:text-red-500 text-sm hidden">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="bg-white py-16 text-center shadow-sm">
+            <h1 class="text-4xl font-extrabold text-gray-800">Your Home, On Rent.</h1>
+            <p class="mt-4 text-gray-600 text-lg">Affordable furniture & appliances without buying.</p>
+        </header>
+
+        <!-- Main Section Container -->
+        <main class="container mx-auto py-12 px-4">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 border-b-2 border-gray-200 pb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Available for Rent</h2>
+                
+                <!-- Category Filtering Buttons -->
+                <div class="flex space-x-2 mt-4 md:mt-0">
+                    <button onclick="filterItems('All')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-blue-700 transition">All</button>
+                    <button onclick="filterItems('Furniture')" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">Furniture</button>
+                    <button onclick="filterItems('Appliances')" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">Appliances</button>
+                </div>
+            </div>
+            
+            <!-- Product Grid Container -->
+            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <p class="text-gray-500 col-span-3 text-center py-8">No products available. Go to Admin Panel to add some!</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const products = JSON.parse(localStorage.getItem('rentEaseProducts')) || [];
+        
+        // --- LOGIN CHECK LOGIC ---
+        window.onload = function() {
+            const currentUser = localStorage.getItem('rentEaseUser');
+            
+            if (!currentUser) {
+                // Agar user logged in nahi hai, toh login box dikhao
+                document.getElementById('loginOverlay').classList.remove('hidden');
+            } else {
+                // Agar logged in hai, toh greeting dikhao
+                showUserMenu(currentUser);
+            }
+            
+            renderProducts(products);
+        };
+
+        // Form Submit hone par login handle karna
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('uName').value;
+            
+            // LocalStorage me user ka naam save karna
+            localStorage.setItem('rentEaseUser', username);
+            
+            // Login box ko chupana
+            document.getElementById('loginOverlay').classList.add('hidden');
+            showUserMenu(username);
+        });
+
+        function showUserMenu(name) {
+            const greeting = document.getElementById('userGreeting');
+            const logoutBtn = document.getElementById('logoutBtn');
+            greeting.innerText = `Hi, ${name}!`;
+            greeting.classList.remove('hidden');
+            logoutBtn.classList.remove('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('rentEaseUser');
+            window.location.reload();
+        }
+
+        // --- PRODUCTS RENDER LOGIC ---
+        function renderProducts(itemsList) {
+            const grid = document.getElementById('productsGrid');
+            if(itemsList.length > 0) {
+                grid.innerHTML = '';
+                itemsList.forEach(product => {
+                    grid.innerHTML += `
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                            <img src="${product.img}" alt="${product.name}" class="w-full h-48 object-cover">
+                            <div class="p-5">
+                                <span class="text-xs font-bold text-blue-500 uppercase">${product.category}</span>
+                                <h3 class="text-xl font-bold mt-1">${product.name}</h3>
+                                <p class="text-emerald-600 font-semibold mt-2">₹${product.rent} / month</p>
+                                <button onclick="viewDetails('${product.id}')" class="w-full mt-4 text-center bg-gray-800 text-white py-2 rounded hover:bg-gray-700 transition">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                grid.innerHTML = `<p class="text-gray-500 col-span-3 text-center py-8">No products found.</p>`;
+            }
+        }
+
+        function filterItems(category) {
+            if(category === 'All') {
+                renderProducts(products);
+            } else {
+                const filtered = products.filter(p => p.category === category);
+                renderProducts(filtered);
+            }
+        }
+
+        function viewDetails(id) {
+            localStorage.setItem('selectedProductID', id);
+            window.location.href = 'product-detail.html';
+        }
+    </script>
+</body>
+</html>

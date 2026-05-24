@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Details - RentEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    
+    <!-- product-detail.html ke top par check karein -->
+<div class="container mx-auto py-6 px-4 flex space-x-4">
+    <a href="index.html" class="text-blue-600 hover:underline">← Back to Catalog</a>
+    <span class="text-gray-300">|</span>
+    <a href="dashboard.html" class="text-blue-600 hover:underline">Go to My Rentals</a>
+</div>
+
+    <div class="container mx-auto py-6 px-4">
+        <!-- Container jisme details load hongi -->
+        <div id="detailContainer" class="bg-white rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden">
+             <p class="p-8 text-center w-full text-gray-500">Loading item details...</p>
+        </div>
+    </div>
+
+    <script>
+        // Pata lagana ki kaunsa product dekhna hai
+        const selectedID = localStorage.getItem('selectedProductID');
+        const products = JSON.parse(localStorage.getItem('rentEaseProducts')) || [];
+        
+        // Puri list mein se us ID ka product dhundna
+        const product = products.find(p => p.id === selectedID);
+        const container = document.getElementById('detailContainer');
+
+        if(product) {
+            container.innerHTML = `
+                <!-- Image Section -->
+                <div class="md:w-1/2">
+                    <img src="${product.img}" class="w-full h-96 md:h-full object-cover" alt="${product.name}">
+                </div>
+                <!-- Content Section -->
+                <div class="md:w-1/2 p-10 flex flex-col justify-between">
+                    <div>
+                        <span class="text-blue-600 font-bold uppercase tracking-widest text-sm">${product.category}</span>
+                        <h2 class="text-4xl font-bold mt-2">${product.name}</h2>
+                        <p class="text-3xl text-gray-800 mt-4 font-semibold">₹${product.rent} <span class="text-sm font-normal text-gray-500">/ month</span></p>
+                        <div class="mt-6 border-t pt-6 text-gray-600 leading-relaxed">
+                            Quality assured by RentEase. Free delivery, installation, and complimentary maintenance support included during your complete tenure.
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Select Rental Tenure</label>
+                            <select class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-3 border outline-none focus:ring-2 focus:ring-blue-400">
+                                <option>3 Months (Standard Plan)</option>
+                                <option>6 Months (5% Special Discount)</option>
+                                <option>12 Months (10% Mega Discount)</option>
+                            </select>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <p class="text-sm text-blue-800">Refundable Security Deposit: <span class="font-bold">₹${product.deposit}</span></p>
+                        </div>
+                        <button onclick="orderSuccess()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 shadow-lg transition">
+                            Book This Rental
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `<p class="p-8 text-center text-red-500 w-full">Product not found!</p>`;
+        }
+
+        function orderSuccess() {
+    // Select kiye huyen tenure ki value nikalna
+    const tenureSelect = document.querySelector('select');
+    const selectedTenure = tenureSelect.options[tenureSelect.selectedIndex].text;
+
+    // Naya booking object banana
+    const newBooking = {
+        name: product.name,
+        category: product.category,
+        rent: product.rent,
+        img: product.img,
+        tenure: selectedTenure
+    };
+
+    // Pehle ki bookings nikalna aur nayi wali usme add karna
+    let bookings = JSON.parse(localStorage.getItem('rentEaseBookings')) || [];
+    bookings.push(newBooking);
+
+    // LocalStorage mein wapas save karna
+    localStorage.setItem('rentEaseBookings', JSON.stringify(bookings));
+
+    alert('Congratulations! Your rental order has been placed successfully.');
+    
+    // User ko dashboard page par bhej dena
+    window.location.href = 'dashboard.html';
+}
+    </script>
+</body>
+</html>
